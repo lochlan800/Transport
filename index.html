@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>England Transport Finder</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+<script src="vendor/leaflet/leaflet.js"></script>
 <style>
   :root{
     --bg:#0b1020; --bg2:#121a33; --panel:#161f3d; --panel2:#1d2950;
@@ -94,6 +96,13 @@
   .empty{padding:50px 20px;text-align:center;color:var(--muted)}
   .empty .big{font-size:46px;margin-bottom:10px}
 
+  #map{height:480px;border-radius:14px;overflow:hidden;margin-top:6px;border:1px solid var(--line);z-index:0}
+  .maptip{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+  .legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend i{width:14px;height:3px;border-radius:3px;display:inline-block}
+  .leaflet-popup-content{font-size:13px;line-height:1.4}
+
   .note{margin-top:26px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
   a{color:var(--accent2)}
 </style>
@@ -172,10 +181,35 @@ const PLACES = ['London','Manchester','Birmingham','Leeds','Liverpool','Sheffiel
   'Milton Keynes','Stoke-on-Trent','Sunderland','Wolverhampton','Carlisle','Durham','Lancaster','Chester',
   'Harrogate','Scarborough','Ipswich','Canterbury'];
 
+/* real lat/lon for each place, so the map can show the actual location */
+const COORDS = {
+  'London':[51.5074,-0.1278],'Manchester':[53.4808,-2.2426],'Birmingham':[52.4862,-1.8904],
+  'Leeds':[53.8008,-1.5491],'Liverpool':[53.4084,-2.9916],'Sheffield':[53.3811,-1.4701],
+  'Bristol':[51.4545,-2.5879],'Newcastle':[54.9783,-1.6178],'Nottingham':[52.9548,-1.1581],
+  'Leicester':[52.6369,-1.1398],'York':[53.9600,-1.0873],'Brighton':[50.8225,-0.1372],
+  'Cambridge':[52.2053,0.1218],'Oxford':[51.7520,-1.2577],'Reading':[51.4543,-0.9781],
+  'Southampton':[50.9097,-1.4044],'Portsmouth':[50.8198,-1.0880],'Plymouth':[50.3755,-4.1427],
+  'Exeter':[50.7184,-3.5339],'Norwich':[52.6309,1.2974],'Bath':[51.3811,-2.3590],
+  'Coventry':[52.4068,-1.5197],'Hull':[53.7676,-0.3274],'Derby':[52.9225,-1.4746],
+  'Preston':[53.7632,-2.7031],'Blackpool':[53.8175,-3.0357],'Bournemouth':[50.7192,-1.8808],
+  'Milton Keynes':[52.0406,-0.7594],'Stoke-on-Trent':[53.0027,-2.1794],'Sunderland':[54.9069,-1.3838],
+  'Wolverhampton':[52.5870,-2.1288],'Carlisle':[54.8924,-2.9320],'Durham':[54.7761,-1.5733],
+  'Lancaster':[54.0466,-2.8007],'Chester':[53.1934,-2.8931],'Harrogate':[53.9919,-1.5373],
+  'Scarborough':[54.2773,-0.4017],'Ipswich':[52.0567,1.1482],'Canterbury':[51.2802,1.0789]
+};
+function getCoords(name){
+  if(!name) return null;
+  if(COORDS[name]) return COORDS[name];
+  const hit=Object.keys(COORDS).find(k=>k.toLowerCase()===name.toLowerCase());
+  return hit?COORDS[hit]:null;
+}
+
 /* -------- state -------- */
 const selected = new Set(['train']);
 let lastRoutes = [];
 let sortKey = 'dep';
+let viewMode = 'list';      // 'list' | 'map'
+let mapInstance = null;
 
 /* -------- helpers -------- */
 function seedFrom(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -280,6 +314,7 @@ function fmtMoney(n){return Number.isInteger(n)?n:n.toFixed(2)}
 
 function render(routes){
   const out=document.getElementById('output');
+  if(mapInstance){mapInstance.remove();mapInstance=null;} // old map div is about to be replaced
   if(!routes.length){
     out.innerHTML=`<div class="card empty"><div class="big">🗺️</div>
       Pick a transport type and a place, then hit Search.</div>`;
@@ -292,6 +327,18 @@ function render(routes){
   const fastest=durs.length?fmtDur(Math.min(...durs)):'—';
   const cheapest=prices.length?(Math.min(...prices)===0?'Free':'£'+fmtMoney(Math.min(...prices))):'—';
 
+  const sortHtml = (viewMode==='list') ? `
+        <span class="label" style="align-self:center;margin:0 4px 0 0">Sort</span>
+        <span class="pill ${sortKey==='dep'?'on':''}" data-s="dep">Departure</span>
+        <span class="pill ${sortKey==='dur'?'on':''}" data-s="dur">Duration</span>
+        <span class="pill ${sortKey==='price'?'on':''}" data-s="price">Price</span>` : '';
+
+  const body = (viewMode==='map')
+    ? `<div id="map"></div>
+       <div class="legend">${[...new Set(routes.map(r=>r.modeId))].map(id=>{const m=modeById(id);return `<span><i style="background:${m.color}"></i>${m.ico} ${m.name}</span>`}).join('')}</div>
+       <div class="maptip">Real map data © OpenStreetMap · click a line or dot for details. Needs an internet connection to load.</div>`
+    : `<div class="results">${sorted.map(routeCard).join('')}</div>`;
+
   out.innerHTML=`
     <div class="toolbar">
       <div>
@@ -299,10 +346,9 @@ function render(routes){
         <div class="meta">${esc(document.getElementById('date').value)} · from ${esc(document.getElementById('time').value)}</div>
       </div>
       <div class="sortbar">
-        <span class="label" style="align-self:center;margin:0 4px 0 0">Sort</span>
-        <span class="pill ${sortKey==='dep'?'on':''}" data-s="dep">Departure</span>
-        <span class="pill ${sortKey==='dur'?'on':''}" data-s="dur">Duration</span>
-        <span class="pill ${sortKey==='price'?'on':''}" data-s="price">Price</span>
+        <span class="pill ${viewMode==='list'?'on':''}" data-v="list">📋 List</span>
+        <span class="pill ${viewMode==='map'?'on':''}" data-v="map">🗺️ Map</span>
+        ${sortHtml}
       </div>
     </div>
     <div class="stats">
@@ -311,8 +357,55 @@ function render(routes){
       <div class="stat"><div class="n">${cheapest}</div><div class="l">Cheapest fare</div></div>
       <div class="stat"><div class="n">${onTime}/${routes.length}</div><div class="l">Running on time</div></div>
     </div>
-    <div class="results">${sorted.map(routeCard).join('')}</div>`;
-  out.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{sortKey=p.dataset.s;render(lastRoutes)});
+    ${body}`;
+
+  out.querySelectorAll('.pill[data-s]').forEach(p=>p.onclick=()=>{sortKey=p.dataset.s;render(lastRoutes)});
+  out.querySelectorAll('.pill[data-v]').forEach(p=>p.onclick=()=>{viewMode=p.dataset.v;render(lastRoutes)});
+  if(viewMode==='map') renderMap(routes);
+}
+
+/* draw the chosen place + services on a real OpenStreetMap map */
+function renderMap(routes){
+  const el=document.getElementById('map');
+  if(!el) return;
+  if(typeof L==='undefined'){
+    el.innerHTML=`<div class="empty"><div class="big">🗺️</div>The map couldn't load — it needs an internet connection. Switch back to 📋 List view to keep browsing offline.</div>`;
+    return;
+  }
+  if(mapInstance){mapInstance.remove();mapInstance=null;}
+
+  const place=document.getElementById('place').value.trim();
+  const origin=getCoords(place);
+  mapInstance=L.map('map',{scrollWheelZoom:true}).setView(origin||[52.8,-1.9], origin?10:6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {maxZoom:19, attribution:'© OpenStreetMap contributors'}).addTo(mapInstance);
+
+  const pts=[];
+  if(origin){
+    L.circleMarker(origin,{radius:10,color:'#fff',weight:2,fillColor:'#4f8cff',fillOpacity:1})
+      .addTo(mapInstance).bindPopup('<b>'+esc(place)+'</b><br>Your starting point').openPopup();
+    pts.push(origin);
+  }
+  routes.forEach((rt,i)=>{
+    const mode=modeById(rt.modeId)||{color:'#888',name:rt.modeId,ico:'🚏'};
+    let dest=getCoords(rt.destination);
+    if(!dest && origin){ // vague destination (e.g. across town): place a marker nearby
+      const ang=(i*53%360)*Math.PI/180;
+      dest=[origin[0]+Math.cos(ang)*0.02, origin[1]+Math.sin(ang)*0.03];
+    }
+    if(!dest) return;
+    if(origin){
+      L.polyline([origin,dest],{color:mode.color,weight:3,opacity:.6})
+        .addTo(mapInstance).bindPopup(mode.ico+' '+mode.name+' → '+esc(rt.destination));
+    }
+    L.circleMarker(dest,{radius:6,color:'#0b1020',weight:1.5,fillColor:mode.color,fillOpacity:.95})
+      .addTo(mapInstance)
+      .bindPopup('<b>'+mode.ico+' '+esc(rt.op)+'</b><br>'+esc(rt.depTime)+' → '+esc(rt.destination)+'<br>'+esc(rt.statusText));
+    pts.push(dest);
+  });
+
+  if(pts.length>1) mapInstance.fitBounds(pts,{padding:[40,40]});
+  setTimeout(()=>{mapInstance && mapInstance.invalidateSize()},60);
 }
 
 /* ------------------------------ controller ------------------------------ */
