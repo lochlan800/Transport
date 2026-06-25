@@ -123,7 +123,11 @@
   .leaflet-container.fullscreen{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:99999;border-radius:0;margin:0;border:0}
   body.noscroll{overflow:hidden}
   .fsbtn{background:#fff;color:#06122b;border:0;padding:7px 11px;border-radius:8px;font-weight:800;cursor:pointer;
-    box-shadow:0 1px 5px rgba(0,0,0,.35);font-size:13px}
+    box-shadow:0 1px 5px rgba(0,0,0,.35);font-size:13px;display:block;margin-bottom:6px}
+  .tourctrl{display:flex;gap:8px}
+  .tbtn{background:#06122b;color:#fff;border:1px solid rgba(255,255,255,.25);padding:9px 14px;border-radius:8px;
+    font-weight:800;cursor:pointer;font-size:14px;box-shadow:0 1px 6px rgba(0,0,0,.45)}
+  .tbtn:hover{border-color:var(--accent2)}
   .maptip{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
   .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
   .legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
@@ -534,15 +538,90 @@ function addFullscreenControl(map){
     }});
   map.addControl(new Ctl());
 }
-/* press Esc to leave full screen */
+/* press Esc to leave full screen (or stop a street tour) */
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    if(tour){stopStreetTour();return;}
     document.querySelectorAll('.leaflet-container.fullscreen').forEach(el=>el.classList.remove('fullscreen'));
     document.body.classList.remove('noscroll');
     [mapInstance,planMap].forEach(m=>m&&setTimeout(()=>m.invalidateSize(),80));
     document.querySelectorAll('.fsbtn').forEach(b=>b.innerHTML='⛶ Full screen');
   }
 });
+
+/* ===================== STREET TOUR (auto drive-along) ===================== */
+/* Moves you along the route's streets on the map, hands-free, with play/pause.
+   (A free, no-key alternative to photographic street view.)                  */
+let tour=null;
+
+function densifyPath(latlngs){            // turn a route into evenly-spaced points
+  const pts=latlngs.map(p=>Array.isArray(p)?[p[0],p[1]]:[p.lat,p.lng]);
+  const out=[];
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i], b=pts[i+1], segKm=haversineKm(a,b);
+    const steps=Math.max(1,Math.round(segKm/0.04));   // a step roughly every 40 m
+    for(let s=0;s<steps;s++){const t=s/steps; out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]);}
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
+function addStreetTourControl(map, getLatLngs){
+  const Ctl=L.Control.extend({options:{position:'topright'},
+    onAdd(){
+      const b=L.DomUtil.create('button','fsbtn'); b.type='button'; b.innerHTML='▶ Street tour';
+      L.DomEvent.disableClickPropagation(b);
+      L.DomEvent.on(b,'click',ev=>{L.DomEvent.stop(ev);
+        const ll=getLatLngs(); if(ll&&ll.length>1) startStreetTour(map,ll);
+      });
+      return b;
+    }});
+  map.addControl(new Ctl());
+}
+function startStreetTour(map, latlngs){
+  stopStreetTour();
+  const points=densifyPath(latlngs);
+  if(points.length<2) return;
+  const marker=L.circleMarker(points[0],{radius:8,color:'#fff',weight:3,fillColor:'#22d3ee',fillOpacity:1})
+    .addTo(map).bindTooltip('You are here',{permanent:false});
+  tour={map,marker,points,idx:0,timer:null,playing:false,prev:{c:map.getCenter(),z:map.getZoom()},ctrl:null};
+  map.setView(points[0],16,{animate:true});
+  // controls overlay
+  const Ctl=L.Control.extend({options:{position:'bottomleft'},
+    onAdd(){
+      const d=L.DomUtil.create('div','tourctrl');
+      d.innerHTML='<button class="tbtn" data-act="toggle">⏸ Pause</button><button class="tbtn" data-act="exit">✕ Exit tour</button>';
+      L.DomEvent.disableClickPropagation(d);
+      d.querySelector('[data-act="toggle"]').onclick=()=>{tour&&tour.playing?pauseStreetTour():playStreetTour();};
+      d.querySelector('[data-act="exit"]').onclick=()=>stopStreetTour();
+      return d;
+    }});
+  tour.ctrl=new Ctl(); map.addControl(tour.ctrl);
+  playStreetTour();
+}
+function playStreetTour(){
+  if(!tour) return;
+  tour.playing=true; updateTourBtn();
+  clearInterval(tour.timer);
+  tour.timer=setInterval(()=>{
+    if(!tour) return;
+    tour.idx=(tour.idx+1)%tour.points.length;     // loop the tour
+    const p=tour.points[tour.idx];
+    tour.marker.setLatLng(p);
+    tour.map.panTo(p,{animate:true,duration:0.26,easeLinearity:1});
+  }, 300);
+}
+function pauseStreetTour(){ if(!tour) return; tour.playing=false; clearInterval(tour.timer); updateTourBtn(); }
+function updateTourBtn(){
+  const b=document.querySelector('.tourctrl [data-act="toggle"]');
+  if(b) b.innerHTML=tour&&tour.playing?'⏸ Pause':'▶ Play';
+}
+function stopStreetTour(){
+  if(!tour) return;
+  clearInterval(tour.timer);
+  try{ tour.map.removeLayer(tour.marker); if(tour.ctrl) tour.map.removeControl(tour.ctrl); }catch(e){}
+  try{ tour.map.setView(tour.prev.c, tour.prev.z, {animate:true}); }catch(e){}
+  tour=null;
+}
 
 /* ------------------------------ controller ------------------------------ */
 function doSearch(){
@@ -630,6 +709,7 @@ function planRow(o,selected,nonViable){
 }
 function renderPlan(){
   const out=document.getElementById('planOutput');
+  stopStreetTour();
   if(planMap){planMap.remove();planMap=null;}
   if(!lastPlan){out.innerHTML='';return;}
   const picks=bestPicks(lastPlan);
@@ -666,7 +746,7 @@ function renderPlan(){
     </div>
     <div id="planmap"></div>
     <div class="legend"><span><i style="background:${selMode.color}"></i>${selMode.ico} ${selMode.name} — selected route</span></div>
-    <div class="maptip">🟢 start · 🔴 finish · road routes follow the real roads (needs internet). Tap a card above to compare.</div>
+    <div class="maptip">🟢 start · 🔴 finish · road routes follow the real roads (needs internet). Tap a card above to compare, or press <b>▶ Street tour</b> to ride along the route hands-free.</div>
     <div class="toolbar"><h2 style="font-size:15px">All ways to get there (${planChoice==='cheap'?'cheapest':planChoice==='value'?'best value':'fastest'} first)</h2></div>
     <div class="results">${listed.map(o=>planRow(o,o===sel)).join('')}${nonViable.map(o=>planRow(o,false,true)).join('')}</div>`;
 
@@ -693,6 +773,7 @@ function plannerMap(o){
   }
   planMap.fitBounds([A,B],{padding:[50,50]});
   addFullscreenControl(planMap);
+  addStreetTourControl(planMap, ()=>line.getLatLngs());   // drive-along the selected route
   setTimeout(()=>planMap&&planMap.invalidateSize(),60);
 }
 function doPlan(){

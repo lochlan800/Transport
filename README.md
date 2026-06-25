@@ -34,6 +34,13 @@ There are two tabs:
    - **⭐ Best value** — the best balance of price and time (the bargain)
 3. Tap any option to see that exact route drawn on the map (start → finish),
    with a full ranked list of every way to get there below.
+4. Press **▶ Street tour** on the map to be driven along the route hands-free —
+   it follows the streets and **moves you automatically**, with **Pause / Play**
+   and **Exit tour** buttons (Esc also exits).
+
+> The Street tour is a free, no-key guided animation along the map. A true
+> *photographic* street view (Google Street View) requires a paid API key, so
+> it isn't included.
 
 ## Good to know
 
