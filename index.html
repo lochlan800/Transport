@@ -6,134 +6,95 @@
 <title>England Transport Finder</title>
 <style>
   :root{
-    --bg:#0b1020;
-    --bg2:#121a33;
-    --panel:#161f3d;
-    --panel2:#1d2950;
-    --ink:#eef2ff;
-    --muted:#9aa6c7;
-    --line:#2a3766;
-    --accent:#4f8cff;
-    --accent2:#22d3ee;
-    --good:#34d399;
-    --warn:#fbbf24;
-    --bad:#f87171;
-    --shadow:0 10px 30px rgba(0,0,0,.35);
-    --radius:16px;
+    --bg:#0b1020; --bg2:#121a33; --panel:#161f3d; --panel2:#1d2950;
+    --ink:#eef2ff; --muted:#9aa6c7; --line:#2a3766;
+    --accent:#4f8cff; --accent2:#22d3ee;
+    --good:#34d399; --warn:#fbbf24; --bad:#f87171;
+    --shadow:0 10px 30px rgba(0,0,0,.35); --radius:16px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:radial-gradient(1200px 700px at 80% -10%,#1b2a55 0,transparent 60%),
-               radial-gradient(1000px 600px at -10% 10%,#10204a 0,transparent 55%),
-               var(--bg);
-    color:var(--ink);
-    min-height:100vh;
+               radial-gradient(1000px 600px at -10% 10%,#10204a 0,transparent 55%), var(--bg);
+    color:var(--ink); min-height:100vh;
   }
   .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 80px}
-  header.app{
-    display:flex;align-items:center;gap:14px;margin-bottom:8px;
-  }
-  .logo{
-    width:46px;height:46px;border-radius:12px;flex:0 0 auto;
+  header.app{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+  .logo{width:46px;height:46px;border-radius:12px;flex:0 0 auto;
     background:linear-gradient(135deg,var(--accent),var(--accent2));
-    display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow);
-  }
+    display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow)}
   h1{font-size:26px;margin:0;letter-spacing:.3px}
   .sub{color:var(--muted);font-size:14px;margin-top:2px}
+  .spacer{flex:1}
+  .statuspill{font-size:12px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+  .statuspill.live{color:var(--good);background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.4)}
+  .statuspill.demo{color:var(--warn);background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.4)}
 
-  .card{
-    background:linear-gradient(180deg,var(--panel),var(--bg2));
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-  }
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow)}
   .search{padding:20px;margin-top:18px}
-
   .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;display:block}
 
-  /* transport type chips */
   .modes{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
-  .mode{
-    display:flex;align-items:center;gap:8px;
-    padding:9px 13px;border-radius:999px;cursor:pointer;user-select:none;
-    background:var(--panel2);border:1px solid var(--line);
-    transition:.15s;font-size:14px;font-weight:600;
-  }
+  .mode{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;cursor:pointer;user-select:none;
+    background:var(--panel2);border:1px solid var(--line);transition:.15s;font-size:14px;font-weight:600}
   .mode .ico{font-size:17px}
   .mode:hover{border-color:var(--accent)}
-  .mode.on{
-    background:linear-gradient(135deg,rgba(79,140,255,.25),rgba(34,211,238,.18));
-    border-color:var(--accent);color:#fff;
-    box-shadow:0 0 0 1px var(--accent) inset;
-  }
+  .mode.on{background:linear-gradient(135deg,rgba(79,140,255,.25),rgba(34,211,238,.18));
+    border-color:var(--accent);color:#fff;box-shadow:0 0 0 1px var(--accent) inset}
   .mode .check{opacity:0;font-size:12px;color:var(--accent2)}
   .mode.on .check{opacity:1}
+  .mode.live::after{content:"live";font-size:9px;color:var(--good);border:1px solid rgba(52,211,153,.4);border-radius:5px;padding:0 4px}
 
   .grid{display:grid;grid-template-columns:1.4fr 1fr .9fr auto;gap:14px;align-items:end}
   @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}.grid .go{grid-column:1/-1}}
   @media(max-width:520px){.grid{grid-template-columns:1fr}}
-
-  input,select{
-    width:100%;padding:13px 14px;border-radius:12px;
-    background:#0e1530;border:1px solid var(--line);color:var(--ink);
-    font-size:15px;outline:none;transition:.15s;
-  }
+  input,select{width:100%;padding:13px 14px;border-radius:12px;background:#0e1530;border:1px solid var(--line);
+    color:var(--ink);font-size:15px;outline:none;transition:.15s}
   input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
   ::placeholder{color:#6b78a3}
-
-  .go button{
-    width:100%;padding:14px 22px;border:0;border-radius:12px;cursor:pointer;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
-    color:#06122b;font-weight:800;font-size:15px;letter-spacing:.3px;
-    box-shadow:0 8px 20px rgba(79,140,255,.35);transition:.15s;white-space:nowrap;
-  }
+  .go button{width:100%;padding:14px 22px;border:0;border-radius:12px;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06122b;font-weight:800;font-size:15px;
+    letter-spacing:.3px;box-shadow:0 8px 20px rgba(79,140,255,.35);transition:.15s;white-space:nowrap}
   .go button:hover{transform:translateY(-1px)}
   .go button:active{transform:translateY(0)}
+  .go button:disabled{opacity:.6;cursor:wait;transform:none}
+
+  .liverow{display:flex;gap:10px;align-items:center;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);flex-wrap:wrap}
+  .liverow input{flex:1;min-width:220px}
+  .liverow .mini{font-size:12px;color:var(--muted)}
+  .ghost{padding:11px 14px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);cursor:pointer;font-weight:600;font-size:13px}
+  .ghost:hover{border-color:var(--accent)}
 
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:26px 2px 12px}
   .toolbar h2{font-size:18px;margin:0}
   .toolbar .meta{color:var(--muted);font-size:13px}
   .sortbar{display:flex;gap:8px}
-  .pill{
-    font-size:12px;padding:7px 11px;border-radius:999px;cursor:pointer;
-    background:var(--panel2);border:1px solid var(--line);color:var(--muted);
-  }
+  .pill{font-size:12px;padding:7px 11px;border-radius:999px;cursor:pointer;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
   .pill.on{color:#fff;border-color:var(--accent);background:rgba(79,140,255,.18)}
 
-  /* summary stat strip */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 8px}
   @media(max-width:620px){.stats{grid-template-columns:repeat(2,1fr)}}
   .stat{padding:14px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
   .stat .n{font-size:22px;font-weight:800}
   .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
 
-  /* result rows */
   .results{display:flex;flex-direction:column;gap:12px;margin-top:6px}
-  .route{
-    padding:16px;display:grid;grid-template-columns:64px 1fr auto;gap:16px;align-items:center;
-    transition:.15s;
-  }
+  .route{padding:16px;display:grid;grid-template-columns:64px 1fr auto;gap:16px;align-items:center;transition:.15s}
   .route:hover{border-color:var(--accent)}
-  .badge{
-    width:64px;height:64px;border-radius:14px;display:grid;place-items:center;
-    font-size:28px;color:#06122b;font-weight:800;position:relative;
-  }
+  .badge{width:64px;height:64px;border-radius:14px;display:grid;place-items:center;font-size:28px;color:#06122b;font-weight:800;position:relative}
   .badge .opname{position:absolute;bottom:-7px;font-size:9px;background:#06122b;color:#fff;padding:1px 5px;border-radius:6px;white-space:nowrap}
-
   .mid{min-width:0}
   .op{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .tag{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);font-weight:600}
-
   .timeline{display:flex;align-items:center;gap:10px;margin-top:10px}
-  .tpoint{text-align:center}
-  .tpoint .t{font-size:18px;font-weight:800}
-  .tpoint .p{font-size:11px;color:var(--muted)}
-  .tbar{flex:1;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));position:relative}
+  .tpoint{text-align:center;min-width:0}
+  .tpoint .t{font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+  .tpoint .p{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
+  .tbar{flex:1;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));position:relative;min-width:40px}
   .tbar .dur{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
-  .tbar .stops{position:absolute;top:-3px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid var(--accent);transform:translateY(-3px)}
-
   .right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
   .price{font-size:20px;font-weight:800}
   .status{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
@@ -144,6 +105,11 @@
 
   .empty{padding:50px 20px;text-align:center;color:var(--muted)}
   .empty .big{font-size:46px;margin-bottom:10px}
+  .infonote{padding:12px 16px;margin-top:12px;border-radius:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#ffe7a8;font-size:13px}
+  .errnote{padding:12px 16px;margin-top:12px;border-radius:12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.35);color:#ffd0d0;font-size:13px}
+
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   .note{margin-top:26px;font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
   .note code{background:var(--panel2);padding:2px 6px;border-radius:6px;border:1px solid var(--line)}
@@ -160,6 +126,8 @@
       <h1>England Transport Finder</h1>
       <div class="sub">Trains · Buses · Tube · Trams · Coaches · Ferries — pick a mode, a place &amp; a date</div>
     </div>
+    <div class="spacer"></div>
+    <div id="statusPill" class="statuspill demo">Demo mode</div>
   </header>
 
   <section class="card search">
@@ -184,236 +152,235 @@
         <button id="searchBtn">Search 🔍</button>
       </div>
     </div>
+
+    <div class="liverow">
+      <span class="mini">🛰️ Live data server (optional):</span>
+      <input id="proxy" placeholder="https://your-worker.workers.dev  — leave blank for demo data" autocomplete="off" />
+      <button class="ghost" id="saveProxy">Save</button>
+      <button class="ghost" id="clearProxy">Use demo</button>
+    </div>
   </section>
 
   <div id="output"></div>
 
   <p class="note">
-    Prototype: this single HTML file runs entirely offline and generates realistic, consistent sample timetables
-    for the place, date &amp; modes you choose — no internet or API key required.
+    With <b>no server</b> set, this single file runs offline with realistic sample timetables.
+    Add a free <b>live data server</b> (see <code>proxy/</code> + <code>README.md</code>) to get
+    <b>real train &amp; bus departures across England</b>.
     <details>
-      <summary>How to connect real live data</summary>
-      Replace the <code>generateRoutes()</code> function with calls to a real API such as
-      Transport API, National Rail Darwin (OpenLDBWS), TfL Unified API, or the BODS bus open-data feeds.
-      The UI is already structured to render whatever route objects you return.
+      <summary>How the live server works</summary>
+      The proxy (Cloudflare Worker or local Node) holds your free TransportAPI key and exposes
+      <code>/api/places</code> and <code>/api/departures</code>. The app geocodes your place, then
+      pulls real departures for the modes that support live data (train, bus, tram).
     </details>
   </p>
 </div>
 
 <script>
-/* ----------------------------------------------------------------------------
-   England Transport Finder — self-contained prototype
-   Data is generated deterministically from (place + date + mode) so the same
-   search always returns the same plausible results. Swap generateRoutes() for
-   a real API to go live.
------------------------------------------------------------------------------ */
+/* ============================================================================
+   England Transport Finder
+   - DEMO mode: deterministic sample data, fully offline (no server).
+   - LIVE mode: real train/bus/tram departures via your proxy (proxy/ folder).
+   Set the proxy URL once; it's remembered in this browser.
+============================================================================ */
 
 const MODES = [
-  {id:'train', name:'Train',   ico:'🚆', color:'#4f8cff',
+  {id:'train', name:'Train',   ico:'🚆', color:'#4f8cff', live:true,
     ops:['LNER','Avanti West Coast','Great Western Railway','Northern','CrossCountry','TransPennine Express','East Midlands Railway','Southern']},
-  {id:'tube',  name:'Tube / Metro', ico:'🚇', color:'#e53935',
-    ops:['London Underground','Tyne &amp; Wear Metro','Merseyrail','Elizabeth line']},
-  {id:'tram',  name:'Tram', ico:'🚊', color:'#26a69a',
-    ops:['Manchester Metrolink','Sheffield Supertram','West Midlands Metro','Nottingham Express Transit']},
-  {id:'bus',   name:'Bus', ico:'🚌', color:'#43a047',
+  {id:'bus',   name:'Bus', ico:'🚌', color:'#43a047', live:true,
     ops:['Stagecoach','Arriva','First Bus','Go-Ahead','National Express West Midlands','Reading Buses']},
-  {id:'coach', name:'Coach', ico:'🚍', color:'#fb8c00',
+  {id:'tram',  name:'Tram', ico:'🚊', color:'#26a69a', live:true,
+    ops:['Manchester Metrolink','Sheffield Supertram','West Midlands Metro','Nottingham Express Transit']},
+  {id:'tube',  name:'Tube / Metro', ico:'🚇', color:'#e53935', live:false,
+    ops:['London Underground','Tyne & Wear Metro','Merseyrail','Elizabeth line']},
+  {id:'coach', name:'Coach', ico:'🚍', color:'#fb8c00', live:false,
     ops:['National Express','Megabus','FlixBus']},
-  {id:'ferry', name:'Ferry', ico:'⛴️', color:'#29b6f6',
+  {id:'ferry', name:'Ferry', ico:'⛴️', color:'#29b6f6', live:false,
     ops:['Mersey Ferries','Thames Clippers','Wightlink','Hovertravel']},
-  {id:'taxi',  name:'Taxi / Ride', ico:'🚕', color:'#fdd835',
-    ops:['Uber','Bolt','Local Black Cab','FREENOW']},
-  {id:'bike',  name:'Cycle hire', ico:'🚲', color:'#8e24aa',
-    ops:['Santander Cycles','Beryl Bikes','Lime','Voi']},
-  {id:'walk',  name:'Walk', ico:'🚶', color:'#90a4ae', ops:['On foot']},
+  {id:'taxi',  name:'Taxi / Ride', ico:'🚕', color:'#fdd835', live:false, ops:['Uber','Bolt','Local Black Cab','FREENOW']},
+  {id:'bike',  name:'Cycle hire', ico:'🚲', color:'#8e24aa', live:false, ops:['Santander Cycles','Beryl Bikes','Lime','Voi']},
+  {id:'walk',  name:'Walk', ico:'🚶', color:'#90a4ae', live:false, ops:['On foot']},
 ];
+const modeById = (id)=>MODES.find(m=>m.id===id);
 
-const PLACES = ['London','Manchester','Birmingham','Leeds','Liverpool','Sheffield','Bristol',
-  'Newcastle','Nottingham','Leicester','York','Brighton','Cambridge','Oxford','Reading',
-  'Southampton','Portsmouth','Plymouth','Exeter','Norwich','Bath','Coventry','Hull','Derby',
-  'Preston','Blackpool','Bournemouth','Milton Keynes','Stoke-on-Trent','Sunderland','Wolverhampton',
-  'Carlisle','Durham','Lancaster','Chester','Harrogate','Scarborough','Ipswich','Canterbury'];
+const PLACES = ['London','Manchester','Birmingham','Leeds','Liverpool','Sheffield','Bristol','Newcastle',
+  'Nottingham','Leicester','York','Brighton','Cambridge','Oxford','Reading','Southampton','Portsmouth',
+  'Plymouth','Exeter','Norwich','Bath','Coventry','Hull','Derby','Preston','Blackpool','Bournemouth',
+  'Milton Keynes','Stoke-on-Trent','Sunderland','Wolverhampton','Carlisle','Durham','Lancaster','Chester',
+  'Harrogate','Scarborough','Ipswich','Canterbury'];
 
-/* ---- tiny deterministic PRNG so results are stable per search ---- */
-function seedFrom(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-function rng(seed){let s=seed>>>0;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
-function pick(r,arr){return arr[Math.floor(r()*arr.length)]}
-function rint(r,a,b){return Math.floor(r()*(b-a+1))+a}
-
-/* nearby English destinations for a given place (just plausible neighbours) */
-function destinationsFor(place){
-  const idx = PLACES.indexOf(place);
-  const pool = PLACES.filter(p=>p!==place);
-  // rotate so each place tends to get a stable-ish set
-  const start = (idx<0?7:idx*3)%pool.length;
-  const out=[];
-  for(let i=0;i<8;i++) out.push(pool[(start+i*5)%pool.length]);
-  return [...new Set(out)];
-}
-
-function fmtTime(mins){
-  mins=((mins%1440)+1440)%1440;
-  const h=Math.floor(mins/60), m=mins%60;
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-}
-function fmtDur(mins){
-  const h=Math.floor(mins/60), m=mins%60;
-  return (h?h+'h ':'')+(m||!h?m+'m':'').trim();
-}
-
-/* ---- the swappable data source ---- */
-function generateRoutes(place, dateStr, startMins, modeIds){
-  const routes=[];
-  const dests = destinationsFor(place);
-
-  modeIds.forEach(modeId=>{
-    const mode = MODES.find(m=>m.id===modeId);
-    const r = rng(seedFrom(place+'|'+dateStr+'|'+modeId));
-    const count = (modeId==='walk'||modeId==='taxi'||modeId==='bike')?3:rint(r,4,6);
-
-    for(let i=0;i<count;i++){
-      const dest = (modeId==='walk')? 'City centre' : (modeId==='taxi'||modeId==='bike')? 'Across town' : pick(r,dests);
-      const op = pick(r, mode.ops);
-
-      // departure spaced out after the chosen start time
-      const dep = startMins + i*rint(r,12,40) + rint(r,0,9);
-      let dur;
-      switch(modeId){
-        case 'train': dur=rint(r,35,180); break;
-        case 'coach': dur=rint(r,60,240); break;
-        case 'bus':   dur=rint(r,15,75); break;
-        case 'tube':  dur=rint(r,6,35); break;
-        case 'tram':  dur=rint(r,8,40); break;
-        case 'ferry': dur=rint(r,10,55); break;
-        case 'taxi':  dur=rint(r,8,35); break;
-        case 'bike':  dur=rint(r,6,28); break;
-        default:      dur=rint(r,10,45); // walk
-      }
-      const arr = dep+dur;
-      const stops = (modeId==='walk'||modeId==='taxi'||modeId==='bike')?0:rint(r,0,9);
-
-      // price
-      let price;
-      switch(modeId){
-        case 'train': price=rint(r,8,95); break;
-        case 'coach': price=rint(r,5,38); break;
-        case 'bus':   price=[2,2.5,3,3.5][rint(r,0,3)]; break;
-        case 'tube':  price=[2.8,3.4,4.1,5.5][rint(r,0,3)]; break;
-        case 'tram':  price=[2.2,2.8,3.5][rint(r,0,2)]; break;
-        case 'ferry': price=rint(r,3,14); break;
-        case 'taxi':  price=rint(r,7,32); break;
-        case 'bike':  price=[1.65,2,3][rint(r,0,2)]; break;
-        default:      price=0;
-      }
-
-      // status
-      const roll=r();
-      let status, scls;
-      if(roll>0.86){const d=rint(r,3,18);status='Delayed '+d+'m';scls='s-bad'}
-      else if(roll>0.7){status='Expected '+fmtTime(arr+rint(r,1,3));scls='s-warn'}
-      else{status='On time';scls='s-good'}
-
-      // line / service identifier
-      let line='';
-      if(modeId==='bus'||modeId==='coach') line='Service '+pick(r,['X1','42','11','100','205','National Express 320','M3','7A']);
-      else if(modeId==='tube') line=pick(r,['Victoria','Central','Northern','Jubilee','Yellow line','Green line']);
-      else if(modeId==='tram') line=pick(r,['Yellow','Purple','Blue','Altrincham line','Eccles line']);
-      else if(modeId==='train') line=pick(r,['Platform service','Direct','Fast service','Stopping service']);
-
-      routes.push({
-        modeId, mode, op, line,
-        from:place, to:dest,
-        dep, arr, dur, stops, price,
-        status, scls,
-        platform: (modeId==='train')? 'Platform '+rint(r,1,14)
-                 : (modeId==='bus'||modeId==='coach')? 'Stand '+pick(r,['A','B','C','D','E'])
-                 : (modeId==='ferry')? 'Pier '+rint(r,1,4) : ''
-      });
-    }
-  });
-
-  return routes;
-}
-
-/* ---------------------------- UI rendering ---------------------------------- */
+/* -------- state -------- */
 const selected = new Set(['train']);
 let lastRoutes = [];
 let sortKey = 'dep';
+let proxyUrl = (localStorage.getItem('tf_proxy') || '').replace(/\/+$/,'');
 
+/* -------- helpers -------- */
+function seedFrom(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){let s=seed>>>0;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
+function pick(r,a){return a[Math.floor(r()*a.length)]}
+function rint(r,a,b){return Math.floor(r()*(b-a+1))+a}
+function pad(n){return String(n).padStart(2,'0')}
+function fmtTime(mins){mins=((mins%1440)+1440)%1440;return pad(Math.floor(mins/60))+':'+pad(mins%60)}
+function fmtDur(mins){const h=Math.floor(mins/60),m=mins%60;return ((h?h+'h ':'')+((m||!h)?m+'m':'')).trim()}
+function toMins(hhmm){if(!hhmm||!/^\d{1,2}:\d{2}/.test(hhmm))return null;const[a,b]=hhmm.split(':').map(Number);return a*60+b}
+
+/* ============================ DEMO data source ============================ */
+function destinationsFor(place){
+  const idx=PLACES.indexOf(place), pool=PLACES.filter(p=>p!==place);
+  const start=(idx<0?7:idx*3)%pool.length, out=[];
+  for(let i=0;i<8;i++) out.push(pool[(start+i*5)%pool.length]);
+  return [...new Set(out)];
+}
+function generateRoutesDemo(place,dateStr,startMins,modeIds){
+  const routes=[], dests=destinationsFor(place);
+  modeIds.forEach(modeId=>{
+    const mode=modeById(modeId), r=rng(seedFrom(place+'|'+dateStr+'|'+modeId));
+    const count=(modeId==='walk'||modeId==='taxi'||modeId==='bike')?3:rint(r,4,6);
+    for(let i=0;i<count;i++){
+      const dest=(modeId==='walk')?'City centre':(modeId==='taxi'||modeId==='bike')?'Across town':pick(r,dests);
+      const op=pick(r,mode.ops);
+      const dep=startMins+i*rint(r,12,40)+rint(r,0,9);
+      let dur;switch(modeId){case 'train':dur=rint(r,35,180);break;case 'coach':dur=rint(r,60,240);break;
+        case 'bus':dur=rint(r,15,75);break;case 'tube':dur=rint(r,6,35);break;case 'tram':dur=rint(r,8,40);break;
+        case 'ferry':dur=rint(r,10,55);break;case 'taxi':dur=rint(r,8,35);break;case 'bike':dur=rint(r,6,28);break;
+        default:dur=rint(r,10,45)}
+      const arr=dep+dur, stops=(modeId==='walk'||modeId==='taxi'||modeId==='bike')?0:rint(r,0,9);
+      let price;switch(modeId){case 'train':price=rint(r,8,95);break;case 'coach':price=rint(r,5,38);break;
+        case 'bus':price=[2,2.5,3,3.5][rint(r,0,3)];break;case 'tube':price=[2.8,3.4,4.1,5.5][rint(r,0,3)];break;
+        case 'tram':price=[2.2,2.8,3.5][rint(r,0,2)];break;case 'ferry':price=rint(r,3,14);break;
+        case 'taxi':price=rint(r,7,32);break;case 'bike':price=[1.65,2,3][rint(r,0,2)];break;default:price=0}
+      const roll=r();let statusText,statusClass;
+      if(roll>0.86){statusText='Delayed '+rint(r,3,18)+'m';statusClass='s-bad'}
+      else if(roll>0.7){statusText='Expected '+fmtTime(arr+rint(r,1,3));statusClass='s-warn'}
+      else{statusText='On time';statusClass='s-good'}
+      let line='';
+      if(modeId==='bus'||modeId==='coach')line=pick(r,['X1','42','11','100','205','320','M3','7A']);
+      else if(modeId==='tube')line=pick(r,['Victoria','Central','Northern','Jubilee']);
+      else if(modeId==='tram')line=pick(r,['Yellow','Purple','Blue','Altrincham']);
+      routes.push({modeId,op,line,from:place,origin:place,destination:dest,
+        depTime:fmtTime(dep),arrTime:fmtTime(arr),durMins:dur,stops,price,statusText,statusClass,
+        platform:(modeId==='train')?'Platform '+rint(r,1,14):(modeId==='bus'||modeId==='coach')?'Stand '+pick(r,['A','B','C','D','E']):(modeId==='ferry')?'Pier '+rint(r,1,4):''});
+    }
+  });
+  return routes;
+}
+
+/* ============================ LIVE data source ============================ */
+async function generateRoutesLive(place,dateStr,timeStr,modeIds){
+  const res=await fetch(`${proxyUrl}/api/places?q=${encodeURIComponent(place)}`);
+  if(!res.ok) throw new Error('Place lookup failed ('+res.status+'). Check the server URL.');
+  const places=await res.json();
+  if(places.error) throw new Error(places.error);
+  if(!Array.isArray(places)||!places.length) throw new Error('No matching place found for “'+place+'”.');
+
+  const station=places.find(p=>p.type==='train_station'&&p.code);
+  const busStop =places.find(p=>p.type==='bus_stop'&&p.atcocode);
+  const tramStop=places.find(p=>p.type==='tram_stop'&&p.atcocode);
+
+  const liveModes=modeIds.filter(id=>modeById(id).live);
+  const skipped=modeIds.filter(id=>!modeById(id).live).map(id=>modeById(id).name);
+
+  const jobs=[];
+  for(const id of liveModes){
+    let q=null;
+    if(id==='train'&&station) q=`mode=train&code=${encodeURIComponent(station.code)}`;
+    else if(id==='bus'&&busStop) q=`mode=bus&atcocode=${encodeURIComponent(busStop.atcocode)}`;
+    else if(id==='tram'&&tramStop) q=`mode=tram&atcocode=${encodeURIComponent(tramStop.atcocode)}`;
+    if(!q){ skipped.push(modeById(id).name+' (no nearby stop)'); continue; }
+    jobs.push(
+      fetch(`${proxyUrl}/api/departures?${q}&date=${dateStr}&time=${timeStr}`)
+        .then(r=>r.json())
+        .then(list=>Array.isArray(list)?list:[])
+        .catch(()=>[])
+    );
+  }
+  const results=(await Promise.all(jobs)).flat();
+  return {routes:results, skipped};
+}
+
+/* ============================== rendering =============================== */
+function setStatusPill(){
+  const el=document.getElementById('statusPill');
+  if(proxyUrl){el.className='statuspill live';el.textContent='Live ✅';}
+  else{el.className='statuspill demo';el.textContent='Demo mode';}
+}
 function buildModes(){
-  const host=document.getElementById('modes');
-  host.innerHTML='';
+  const host=document.getElementById('modes');host.innerHTML='';
   MODES.forEach(m=>{
     const el=document.createElement('div');
-    el.className='mode'+(selected.has(m.id)?' on':'');
+    el.className='mode'+(selected.has(m.id)?' on':'')+(m.live?' live':'');
     el.innerHTML=`<span class="ico">${m.ico}</span><span>${m.name}</span><span class="check">✓</span>`;
     el.onclick=()=>{selected.has(m.id)?selected.delete(m.id):selected.add(m.id);buildModes()};
     host.appendChild(el);
   });
 }
-
-function buildPlaces(){
-  const dl=document.getElementById('places');
-  dl.innerHTML=PLACES.map(p=>`<option value="${p}">`).join('');
-}
+function buildPlaces(){document.getElementById('places').innerHTML=PLACES.map(p=>`<option value="${p}">`).join('')}
 
 function sortRoutes(routes){
-  const copy=[...routes];
-  if(sortKey==='dep') copy.sort((a,b)=>a.dep-b.dep);
-  if(sortKey==='dur') copy.sort((a,b)=>a.dur-b.dur);
-  if(sortKey==='price') copy.sort((a,b)=>a.price-b.price);
-  return copy;
+  const c=[...routes], big=1e9;
+  if(sortKey==='dep') c.sort((a,b)=>(toMins(a.depTime)??big)-(toMins(b.depTime)??big));
+  if(sortKey==='dur') c.sort((a,b)=>(a.durMins??big)-(b.durMins??big));
+  if(sortKey==='price') c.sort((a,b)=>(a.price??big)-(b.price??big));
+  return c;
 }
-
 function routeCard(rt){
-  const stopsHtml = rt.stops>0
-    ? `<span class="tag">${rt.stops} stop${rt.stops>1?'s':''}</span>`
-    : `<span class="tag">Direct</span>`;
-  const priceHtml = rt.price>0 ? '£'+(Number.isInteger(rt.price)?rt.price:rt.price.toFixed(2)) : 'Free';
-  const lineHtml = rt.line?`<span class="tag">${rt.line}</span>`:'';
-  const platHtml = rt.platform?`<div class="platform">${rt.platform}</div>`:'';
+  const mode=modeById(rt.modeId)||{ico:'🚏',color:'#888',name:rt.modeId};
+  const lineHtml=rt.line?`<span class="tag">${esc(rt.line)}</span>`:'';
+  const stopsHtml=(rt.stops!=null)?`<span class="tag">${rt.stops?rt.stops+' stop'+(rt.stops>1?'s':''):'Direct'}</span>`:'';
+  const priceHtml=(rt.price!=null)?(rt.price>0?'£'+(Number.isInteger(rt.price)?rt.price:rt.price.toFixed(2)):'Free'):'';
+  const platHtml=rt.platform?`<div class="platform">${esc(rt.platform)}</div>`:'';
+  // right-hand point: arrival time if known, else the destination name
+  const rightBig=rt.arrTime?esc(rt.arrTime):esc(rt.destination||'—');
+  const rightSmall=rt.arrTime?('to '+esc(rt.destination||'')):(rt.destination?'destination':'');
+  const durHtml=(rt.durMins!=null)?`<span class="dur">${fmtDur(rt.durMins)}</span>`:'';
   return `
   <div class="card route">
-    <div class="badge" style="background:linear-gradient(135deg,${rt.mode.color},#0e1530 220%)">
-      ${rt.mode.ico}
-      <span class="opname">${rt.mode.name}</span>
+    <div class="badge" style="background:linear-gradient(135deg,${mode.color},#0e1530 220%)">
+      ${mode.ico}<span class="opname">${mode.name}</span>
     </div>
     <div class="mid">
-      <div class="op">${rt.op} ${lineHtml} ${stopsHtml}</div>
+      <div class="op">${esc(rt.op)} ${lineHtml} ${stopsHtml}</div>
       <div class="timeline">
-        <div class="tpoint"><div class="t">${fmtTime(rt.dep)}</div><div class="p">${rt.from}</div></div>
-        <div class="tbar"><span class="dur">${fmtDur(rt.dur)}</span>
-          ${rt.stops>0?'<span class="stops" style="left:'+(20+Math.random()*60)+'%"></span>':''}
-        </div>
-        <div class="tpoint"><div class="t">${fmtTime(rt.arr)}</div><div class="p">${rt.to}</div></div>
+        <div class="tpoint"><div class="t">${esc(rt.depTime||'—')}</div><div class="p">from ${esc(rt.origin||rt.from||'')}</div></div>
+        <div class="tbar">${durHtml}</div>
+        <div class="tpoint"><div class="t">${rightBig}</div><div class="p">${rightSmall}</div></div>
       </div>
     </div>
     <div class="right">
-      <div class="price">${priceHtml}</div>
-      <div class="status ${rt.scls}">${rt.status}</div>
+      ${priceHtml?`<div class="price">${priceHtml}</div>`:''}
+      <div class="status ${rt.statusClass||'s-good'}">${esc(rt.statusText||'')}</div>
       ${platHtml}
     </div>
   </div>`;
 }
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
-function render(routes){
+function render(routes, skipped){
   const out=document.getElementById('output');
+  let note='';
+  if(skipped&&skipped.length){
+    note=`<div class="infonote">ℹ️ Live data isn't available for: <b>${esc(skipped.join(', '))}</b>.
+      These modes have no nationwide free live feed${proxyUrl?'':' (you are in demo mode)'}.</div>`;
+  }
   if(!routes.length){
-    out.innerHTML=`<div class="card empty"><div class="big">🗺️</div>
-      Pick at least one transport type and a place, then hit Search.</div>`;
+    out.innerHTML=note+`<div class="card empty"><div class="big">🗺️</div>
+      No services to show. Pick a transport type and a place, then hit Search.</div>`;
     return;
   }
   const sorted=sortRoutes(routes);
-  const onTime=routes.filter(r=>r.scls==='s-good').length;
-  const fastest=Math.min(...routes.map(r=>r.dur));
-  const cheapest=Math.min(...routes.map(r=>r.price));
-  const cheapTxt = cheapest===0?'Free':'£'+(Number.isInteger(cheapest)?cheapest:cheapest.toFixed(2));
+  const durs=routes.map(r=>r.durMins).filter(v=>v!=null);
+  const prices=routes.map(r=>r.price).filter(v=>v!=null);
+  const onTime=routes.filter(r=>r.statusClass==='s-good').length;
+  const fastest=durs.length?fmtDur(Math.min(...durs)):'—';
+  const cheapest=prices.length?(Math.min(...prices)===0?'Free':'£'+fmtMoney(Math.min(...prices))):'—';
 
   out.innerHTML=`
+    ${note}
     <div class="toolbar">
       <div>
-        <h2>${routes.length} option${routes.length>1?'s':''} from ${document.getElementById('place').value}</h2>
-        <div class="meta">${document.getElementById('date').value} · from ${document.getElementById('time').value}</div>
+        <h2>${routes.length} departure${routes.length>1?'s':''} · ${esc(document.getElementById('place').value)}</h2>
+        <div class="meta">${esc(document.getElementById('date').value)} · from ${esc(document.getElementById('time').value)} · ${proxyUrl?'live data':'sample data'}</div>
       </div>
       <div class="sortbar">
         <span class="label" style="align-self:center;margin:0 4px 0 0">Sort</span>
@@ -424,38 +391,80 @@ function render(routes){
     </div>
     <div class="stats">
       <div class="stat"><div class="n">${routes.length}</div><div class="l">Services found</div></div>
-      <div class="stat"><div class="n">${fmtDur(fastest)}</div><div class="l">Fastest journey</div></div>
-      <div class="stat"><div class="n">${cheapTxt}</div><div class="l">Cheapest fare</div></div>
+      <div class="stat"><div class="n">${fastest}</div><div class="l">Fastest journey</div></div>
+      <div class="stat"><div class="n">${cheapest}</div><div class="l">Cheapest fare</div></div>
       <div class="stat"><div class="n">${onTime}/${routes.length}</div><div class="l">Running on time</div></div>
     </div>
     <div class="results">${sorted.map(routeCard).join('')}</div>`;
+  out.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{sortKey=p.dataset.s;render(lastRoutes,skipped)});
+}
+function fmtMoney(n){return Number.isInteger(n)?n:n.toFixed(2)}
 
-  out.querySelectorAll('.pill').forEach(p=>p.onclick=()=>{sortKey=p.dataset.s;render(lastRoutes)});
+function showLoading(){
+  document.getElementById('output').innerHTML=
+    `<div class="card empty"><div class="spinner"></div>Fetching ${proxyUrl?'live':'sample'} departures…</div>`;
+}
+function showError(msg){
+  document.getElementById('output').innerHTML=
+    `<div class="errnote">⚠️ ${esc(msg)}<br><br>Showing sample data instead so you can keep exploring.</div>`;
 }
 
-function doSearch(){
+/* ============================== controller ============================== */
+async function doSearch(){
   const place=document.getElementById('place').value.trim();
   const date=document.getElementById('date').value;
   const time=document.getElementById('time').value||'08:00';
   if(!selected.size){alert('Please choose at least one transport type.');return}
   if(!place){alert('Please enter a place.');return}
   if(!date){alert('Please choose a date.');return}
-  const [h,m]=time.split(':').map(Number);
-  lastRoutes=generateRoutes(place,date,h*60+m,[...selected]);
-  render(lastRoutes);
+  const modeIds=[...selected];
+  const btn=document.getElementById('searchBtn');
+
+  if(proxyUrl){
+    btn.disabled=true;showLoading();
+    try{
+      const {routes,skipped}=await generateRoutesLive(place,date,time,modeIds);
+      lastRoutes=routes;
+      if(!routes.length){
+        // nothing live came back — fall back to demo so the user still sees something
+        lastRoutes=generateRoutesDemo(place,date,toMins(time),modeIds);
+        render(lastRoutes,[...skipped,'(no live results — showing samples)']);
+      } else {
+        render(routes,skipped);
+      }
+    }catch(err){
+      showError(err.message||String(err));
+      lastRoutes=generateRoutesDemo(place,date,toMins(time),modeIds);
+      setTimeout(()=>render(lastRoutes,['(server error — showing samples)']),900);
+    }finally{btn.disabled=false}
+  } else {
+    lastRoutes=generateRoutesDemo(place,date,toMins(time),modeIds);
+    render(lastRoutes);
+  }
   document.getElementById('output').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* init */
+/* ================================ init ================================= */
 buildModes();
 buildPlaces();
+setStatusPill();
+document.getElementById('proxy').value=proxyUrl;
 (function initDefaults(){
   const d=new Date();
   document.getElementById('date').value=d.toISOString().slice(0,10);
-  document.getElementById('time').value=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  document.getElementById('time').value=pad(d.getHours())+':'+pad(d.getMinutes());
 })();
 document.getElementById('searchBtn').onclick=doSearch;
 document.getElementById('place').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
+document.getElementById('saveProxy').onclick=()=>{
+  proxyUrl=document.getElementById('proxy').value.trim().replace(/\/+$/,'');
+  localStorage.setItem('tf_proxy',proxyUrl);setStatusPill();
+  document.getElementById('output').innerHTML=`<div class="card empty"><div class="big">${proxyUrl?'🛰️':'🗺️'}</div>${proxyUrl?'Live server saved. Run a search to fetch real departures.':'Cleared — using demo data.'}</div>`;
+};
+document.getElementById('clearProxy').onclick=()=>{
+  proxyUrl='';document.getElementById('proxy').value='';localStorage.removeItem('tf_proxy');setStatusPill();
+  document.getElementById('output').innerHTML=`<div class="card empty"><div class="big">🗺️</div>Using demo data. Pick a mode &amp; place, then Search.</div>`;
+};
 render([]);
 </script>
 </body>

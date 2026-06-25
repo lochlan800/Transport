@@ -1,0 +1,7 @@
+name = "england-transport-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Secrets are NOT stored here. Set them after deploy with:
+#   npx wrangler secret put TRANSPORTAPI_APP_ID
+#   npx wrangler secret put TRANSPORTAPI_APP_KEY
