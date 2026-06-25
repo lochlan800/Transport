@@ -204,6 +204,29 @@ function getCoords(name){
   return hit?COORDS[hit]:null;
 }
 
+/* modes that travel on roads — these can be traced along the real route */
+const ROADMODES = new Set(['bus','coach','taxi','bike','walk']);
+
+/* gentle arc between two points (used for rail/ferry and as the instant draw) */
+function curvePoints(a,b,n=24){
+  const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2], dx=b[0]-a[0], dy=b[1]-a[1];
+  const ctrl=[mid[0]+dy*0.12, mid[1]-dx*0.12], out=[];
+  for(let i=0;i<=n;i++){const t=i/n,u=1-t;
+    out.push([u*u*a[0]+2*u*t*ctrl[0]+t*t*b[0], u*u*a[1]+2*u*t*ctrl[1]+t*t*b[1]]);}
+  return out;
+}
+
+/* fetch the real road route shape between two points (OSRM, no key needed) */
+async function routeGeometry(a,b){
+  try{
+    const url=`https://router.project-osrm.org/route/v1/driving/${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson`;
+    const r=await fetch(url); if(!r.ok) return null;
+    const j=await r.json(); const rt=j&&j.routes&&j.routes[0];
+    if(!rt||!rt.geometry) return null;
+    return {coords:rt.geometry.coordinates.map(c=>[c[1],c[0]]), distanceKm:rt.distance/1000};
+  }catch(e){return null;}
+}
+
 /* -------- state -------- */
 const selected = new Set(['train']);
 let lastRoutes = [];
@@ -336,7 +359,7 @@ function render(routes){
   const body = (viewMode==='map')
     ? `<div id="map"></div>
        <div class="legend">${[...new Set(routes.map(r=>r.modeId))].map(id=>{const m=modeById(id);return `<span><i style="background:${m.color}"></i>${m.ico} ${m.name}</span>`}).join('')}</div>
-       <div class="maptip">Real map data © OpenStreetMap · click a line or dot for details. Needs an internet connection to load.</div>`
+       <div class="maptip">Road journeys are traced along the real roads (like a Strava route); rail &amp; ferry show a direct path. Real map data © OpenStreetMap &amp; OSRM · click a line or dot for details · needs an internet connection.</div>`
     : `<div class="results">${sorted.map(routeCard).join('')}</div>`;
 
   out.innerHTML=`
@@ -386,17 +409,29 @@ function renderMap(routes){
       .addTo(mapInstance).bindPopup('<b>'+esc(place)+'</b><br>Your starting point').openPopup();
     pts.push(origin);
   }
+  let routed=0; const MAXROUTED=10;   // be polite to the free routing server
   routes.forEach((rt,i)=>{
     const mode=modeById(rt.modeId)||{color:'#888',name:rt.modeId,ico:'🚏'};
-    let dest=getCoords(rt.destination);
+    let dest=getCoords(rt.destination), vague=false;
     if(!dest && origin){ // vague destination (e.g. across town): place a marker nearby
-      const ang=(i*53%360)*Math.PI/180;
+      vague=true; const ang=(i*53%360)*Math.PI/180;
       dest=[origin[0]+Math.cos(ang)*0.02, origin[1]+Math.sin(ang)*0.03];
     }
     if(!dest) return;
     if(origin){
-      L.polyline([origin,dest],{color:mode.color,weight:3,opacity:.6})
+      // draw the journey path instantly as a smooth curve…
+      const line=L.polyline(curvePoints(origin,dest),{color:mode.color,weight:3,opacity:.65})
         .addTo(mapInstance).bindPopup(mode.ico+' '+mode.name+' → '+esc(rt.destination));
+      // …then, for road journeys, snap it to the real roads (like a Strava trace)
+      if(ROADMODES.has(rt.modeId) && !vague && routed<MAXROUTED){
+        routed++;
+        routeGeometry(origin,dest).then(g=>{
+          if(g && mapInstance){
+            line.setLatLngs(g.coords).setStyle({weight:4,opacity:.9});
+            line.bindPopup(mode.ico+' <b>'+mode.name+'</b> → '+esc(rt.destination)+'<br>'+g.distanceKm.toFixed(1)+' km along the road');
+          }
+        });
+      }
     }
     L.circleMarker(dest,{radius:6,color:'#0b1020',weight:1.5,fillColor:mode.color,fillOpacity:.95})
       .addTo(mapInstance)

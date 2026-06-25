@@ -15,6 +15,11 @@ no install, no sign-up, no internet needed. It runs entirely in your browser.
 4. **Switch to 🗺️ Map view** to see the place on a real map (OpenStreetMap),
    with each service drawn as a coloured line to its destination. Click a line
    or dot for the operator, time and status.
+   - **Road journeys** (bus, coach, taxi, cycle, walk) are **traced along the
+     real roads — like a Strava route — and show the road distance**, using the
+     free OSRM routing service.
+   - Rail &amp; ferry show a direct path (there's no free public route-shape
+     service for railway lines).
 
 ## Good to know
 
@@ -22,5 +27,6 @@ no install, no sign-up, no internet needed. It runs entirely in your browser.
   search always gives the same results. It's a polished demo of the interface,
   not a live travel planner — don't use it to catch a real service.
 - The **List view works fully offline.** The **Map view needs an internet connection**
-  to download the map imagery (every real map does); the map software itself is
-  bundled locally in `vendor/leaflet/`, so there are no external accounts or keys.
+  to download the map imagery and trace road routes (every real map does); the map
+  software itself is bundled locally in `vendor/leaflet/`, so there are no external
+  accounts or keys.
