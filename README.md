@@ -6,20 +6,34 @@ tube, trams, coaches, ferries, taxis, cycle hire and walking.
 ## Use it
 
 Open **`index.html`** in any web browser (just double-click it). That's it —
-no install, no sign-up, no internet needed. It runs entirely in your browser.
+no install, no sign-up, no account. It runs entirely in your browser.
 
+There are two tabs:
+
+### 🚉 Departures
 1. **Choose** one or more transport types.
 2. **Enter** a place (town, city or station) and a date.
 3. **Search** to see a visual board of departures — times, operators, fares,
    platforms and on-time status — which you can sort by departure, duration or price.
 4. **Switch to 🗺️ Map view** to see the place on a real map (OpenStreetMap),
    with each service drawn as a coloured line to its destination. Click a line
-   or dot for the operator, time and status.
+   or dot for details, or use **⛶ Full screen** to fill the whole window
+   (press **Esc** to exit).
    - **Road journeys** (bus, coach, taxi, cycle, walk) are **traced along the
      real roads — like a Strava route — and show the road distance**, using the
      free OSRM routing service.
    - Rail &amp; ferry show a direct path (there's no free public route-shape
      service for railway lines).
+
+### 🧭 Plan a journey
+1. Enter a **🟢 start point** and a **🔴 finish point** (pick from the suggested cities),
+   plus a date and time.
+2. Press **Find the best routes** and you get three clear options to compare:
+   - **⚡ Fastest** — least time door to door
+   - **💷 Cheapest** — lowest fare
+   - **⭐ Best value** — the best balance of price and time (the bargain)
+3. Tap any option to see that exact route drawn on the map (start → finish),
+   with a full ranked list of every way to get there below.
 
 ## Good to know
 

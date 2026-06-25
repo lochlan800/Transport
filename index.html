@@ -96,7 +96,34 @@
   .empty{padding:50px 20px;text-align:center;color:var(--muted)}
   .empty .big{font-size:46px;margin-bottom:10px}
 
-  #map{height:480px;border-radius:14px;overflow:hidden;margin-top:6px;border:1px solid var(--line);z-index:0}
+  .tabs{display:flex;gap:8px;margin-top:18px}
+  .tab{flex:0 0 auto;padding:11px 18px;border-radius:12px 12px 0 0;border:1px solid var(--line);border-bottom:0;
+    background:var(--panel2);color:var(--muted);font-weight:700;font-size:14px;cursor:pointer}
+  .tab.on{background:linear-gradient(180deg,var(--panel),var(--bg2));color:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.2)}
+
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.pgrid{grid-template-columns:1fr}}
+  .planbtn{margin-top:16px;width:100%;padding:14px 22px;border:0;border-radius:12px;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06122b;font-weight:800;font-size:15px;
+    box-shadow:0 8px 20px rgba(79,140,255,.35)}
+  .planbtn:hover{transform:translateY(-1px)}
+
+  .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:6px 0 14px}
+  @media(max-width:620px){.picks{grid-template-columns:1fr}}
+  .pick{padding:16px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;transition:.15s;position:relative}
+  .pick:hover{border-color:var(--accent)}
+  .pick.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:linear-gradient(135deg,rgba(79,140,255,.18),rgba(34,211,238,.1))}
+  .pick .cap{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .pick .head{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:17px;font-weight:800}
+  .pick .big2{font-size:24px;font-weight:800}
+  .pick .meta2{font-size:13px;color:var(--muted);margin-top:2px}
+  .pick .why{font-size:11px;color:var(--accent2);margin-top:8px;font-weight:700}
+
+  #map,#planmap{height:480px;border-radius:14px;overflow:hidden;margin-top:6px;border:1px solid var(--line);z-index:0}
+  .leaflet-container.fullscreen{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:99999;border-radius:0;margin:0;border:0}
+  body.noscroll{overflow:hidden}
+  .fsbtn{background:#fff;color:#06122b;border:0;padding:7px 11px;border-radius:8px;font-weight:800;cursor:pointer;
+    box-shadow:0 1px 5px rgba(0,0,0,.35);font-size:13px}
   .maptip{color:var(--muted);font-size:12px;margin-top:10px;text-align:center}
   .legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
   .legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
@@ -117,36 +144,78 @@
     </div>
   </header>
 
-  <section class="card search">
-    <span class="label">1 · Choose transport type(s)</span>
-    <div class="modes" id="modes"></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="browse">🚉 Departures</button>
+    <button class="tab" data-tab="plan">🧭 Plan a journey</button>
+  </div>
 
-    <div class="grid">
-      <div>
-        <span class="label">2 · Place (town, city or station)</span>
-        <input id="place" list="places" placeholder="e.g. Manchester, London, York…" autocomplete="off" />
-        <datalist id="places"></datalist>
+  <datalist id="places"></datalist>
+
+  <!-- ============ DEPARTURES TAB ============ -->
+  <section id="browseTab">
+    <section class="card search">
+      <span class="label">1 · Choose transport type(s)</span>
+      <div class="modes" id="modes"></div>
+
+      <div class="grid">
+        <div>
+          <span class="label">2 · Place (town, city or station)</span>
+          <input id="place" list="places" placeholder="e.g. Manchester, London, York…" autocomplete="off" />
+        </div>
+        <div>
+          <span class="label">3 · Date</span>
+          <input id="date" type="date" />
+        </div>
+        <div>
+          <span class="label">From time</span>
+          <input id="time" type="time" />
+        </div>
+        <div class="go">
+          <button id="searchBtn">Search 🔍</button>
+        </div>
       </div>
-      <div>
-        <span class="label">3 · Date</span>
-        <input id="date" type="date" />
-      </div>
-      <div>
-        <span class="label">From time</span>
-        <input id="time" type="time" />
-      </div>
-      <div class="go">
-        <button id="searchBtn">Search 🔍</button>
-      </div>
-    </div>
+    </section>
+
+    <div id="output"></div>
+
+    <p class="note">
+      Runs entirely in your browser — free and offline. Pick your transport type(s), a place and a date
+      to see a visual board of departures.
+    </p>
   </section>
 
-  <div id="output"></div>
+  <!-- ============ PLAN A JOURNEY TAB ============ -->
+  <section id="planTab" style="display:none">
+    <section class="card search">
+      <span class="label">Tell us where you're starting and finishing</span>
+      <div class="pgrid">
+        <div>
+          <span class="label">🟢 Start point</span>
+          <input id="startPt" list="places" placeholder="e.g. York" autocomplete="off" />
+        </div>
+        <div>
+          <span class="label">🔴 Finish point</span>
+          <input id="endPt" list="places" placeholder="e.g. Leeds" autocomplete="off" />
+        </div>
+        <div>
+          <span class="label">Date</span>
+          <input id="planDate" type="date" />
+        </div>
+        <div>
+          <span class="label">Depart from</span>
+          <input id="planTime" type="time" />
+        </div>
+      </div>
+      <button id="planBtn" class="planbtn">Find the best routes 🧭</button>
+    </section>
 
-  <p class="note">
-    Runs entirely in your browser — free and offline. Pick your transport type(s), a place and a date
-    to see a visual board of departures.
-  </p>
+    <div id="planOutput"></div>
+
+    <p class="note">
+      Enter two places (pick from the suggested cities) and we'll compare every way of getting there —
+      then show you the <b>fastest</b>, the <b>cheapest</b>, and the <b>best value</b> option.
+    </p>
+  </section>
 </div>
 
 <script>
@@ -233,6 +302,9 @@ let lastRoutes = [];
 let sortKey = 'dep';
 let viewMode = 'list';      // 'list' | 'map'
 let mapInstance = null;
+let planMap = null;         // journey-planner map instance
+let lastPlan = null;        // last computed journey plan
+let planChoice = 'fast';    // 'fast' | 'cheap' | 'value'
 
 /* -------- helpers -------- */
 function seedFrom(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -440,8 +512,37 @@ function renderMap(routes){
   });
 
   if(pts.length>1) mapInstance.fitBounds(pts,{padding:[40,40]});
+  addFullscreenControl(mapInstance);
   setTimeout(()=>{mapInstance && mapInstance.invalidateSize()},60);
 }
+
+/* a "Full screen" button (Leaflet control) that any map can reuse */
+function addFullscreenControl(map){
+  const Ctl=L.Control.extend({options:{position:'topright'},
+    onAdd(){
+      const b=L.DomUtil.create('button','fsbtn');
+      b.type='button'; b.innerHTML='⛶ Full screen';
+      L.DomEvent.disableClickPropagation(b);
+      L.DomEvent.on(b,'click',ev=>{
+        L.DomEvent.stop(ev);
+        const el=map.getContainer(), on=el.classList.toggle('fullscreen');
+        document.body.classList.toggle('noscroll',on);
+        b.innerHTML=on?'✕ Exit full screen':'⛶ Full screen';
+        setTimeout(()=>map.invalidateSize(),80);
+      });
+      return b;
+    }});
+  map.addControl(new Ctl());
+}
+/* press Esc to leave full screen */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.leaflet-container.fullscreen').forEach(el=>el.classList.remove('fullscreen'));
+    document.body.classList.remove('noscroll');
+    [mapInstance,planMap].forEach(m=>m&&setTimeout(()=>m.invalidateSize(),80));
+    document.querySelectorAll('.fsbtn').forEach(b=>b.innerHTML='⛶ Full screen');
+  }
+});
 
 /* ------------------------------ controller ------------------------------ */
 function doSearch(){
@@ -456,16 +557,178 @@ function doSearch(){
   document.getElementById('output').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+/* ======================================================================== */
+/*  JOURNEY PLANNER  (A → B · fastest / cheapest / best value)              */
+/* ======================================================================== */
+const PLAN_SPECS = {
+  train:{speed:95, base:18, perkm:0.16, min:6,  distFactor:1.15},
+  coach:{speed:62, base:25, perkm:0.07, min:5,  distFactor:1.25},
+  bus:  {speed:32, base:12, perkm:0.05, min:2,  distFactor:1.30},
+  tram: {speed:28, base:8,  perkm:0.12, min:2.2,distFactor:1.30},
+  tube: {speed:33, base:6,  perkm:0.20, min:2.8,distFactor:1.25},
+  taxi: {speed:55, base:5,  perkm:1.60, min:6,  distFactor:1.30},
+  bike: {speed:16, base:3,  perkm:0,    min:0,  distFactor:1.30},
+  walk: {speed:5,  base:0,  perkm:0,    min:0,  distFactor:1.25},
+};
+function haversineKm(a,b){
+  const R=6371, toR=d=>d*Math.PI/180;
+  const dLat=toR(b[0]-a[0]), dLon=toR(b[1]-a[1]);
+  const s=Math.sin(dLat/2)**2 + Math.cos(toR(a[0]))*Math.cos(toR(b[0]))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function viableFor(id,distKm){
+  if(id==='walk') return distKm<=8;
+  if(id==='bike') return distKm<=25;
+  if(id==='tram') return distKm<=15;
+  if(id==='tube') return distKm<=22;
+  if(id==='bus')  return distKm<=60;
+  return true;                       // train, coach, taxi work at any distance
+}
+function planJourneys(from,to,dateStr,startMins){
+  const A=getCoords(from), B=getCoords(to);
+  if(!A||!B) return null;
+  const straight=haversineKm(A,B), r=rng(seedFrom(from+'|'+to+'|'+dateStr));
+  const options=[];
+  for(const id of Object.keys(PLAN_SPECS)){
+    const s=PLAN_SPECS[id], d=straight*s.distFactor;
+    const durMins=Math.max(3, Math.round(s.base + d/s.speed*60*(0.92+r()*0.16)));
+    let price=Math.max(s.min, d*s.perkm);
+    if(id==='bike') price=Math.min(5, 1.65+d*0.05);   // rough cycle-hire cost
+    price=Math.round(price*100)/100;
+    const dep=startMins + rint(r,2,16);
+    options.push({modeId:id, op:pick(r,modeById(id).ops), from, to, distKm:d, durMins, price,
+      depTime:fmtTime(dep), arrTime:fmtTime(dep+durMins), viable:viableFor(id,straight)});
+  }
+  return {from,to,straightKm:straight, options};
+}
+function bestPicks(plan){
+  const v=plan.options.filter(o=>o.viable);
+  if(!v.length) return null;
+  const score=o=>o.price + o.durMins*0.12;   // £ + value-of-time (~£7/hr)
+  return {
+    fast:[...v].sort((a,b)=>a.durMins-b.durMins||a.price-b.price)[0],
+    cheap:[...v].sort((a,b)=>a.price-b.price||a.durMins-b.durMins)[0],
+    value:[...v].sort((a,b)=>score(a)-score(b))[0],
+  };
+}
+function priceTxt(p){return p>0?'£'+(Number.isInteger(p)?p:p.toFixed(2)):'Free'}
+
+function planRow(o,selected,nonViable){
+  const m=modeById(o.modeId);
+  return `<div class="card route" style="${selected?'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;':''}${nonViable?'opacity:.5;':''}">
+    <div class="badge" style="background:linear-gradient(135deg,${m.color},#0e1530 220%)">${m.ico}<span class="opname">${m.name}</span></div>
+    <div class="mid">
+      <div class="op">${esc(o.op)} <span class="tag">${Math.round(o.distKm)} km</span>${nonViable?' <span class="tag">not practical for this distance</span>':''}</div>
+      <div class="timeline">
+        <div class="tpoint"><div class="t">${o.depTime}</div><div class="p">${esc(o.from)}</div></div>
+        <div class="tbar"><span class="dur">${fmtDur(o.durMins)}</span></div>
+        <div class="tpoint"><div class="t">${o.arrTime}</div><div class="p">${esc(o.to)}</div></div>
+      </div>
+    </div>
+    <div class="right"><div class="price">${priceTxt(o.price)}</div></div>
+  </div>`;
+}
+function renderPlan(){
+  const out=document.getElementById('planOutput');
+  if(planMap){planMap.remove();planMap=null;}
+  if(!lastPlan){out.innerHTML='';return;}
+  const picks=bestPicks(lastPlan);
+  if(!picks){
+    out.innerHTML=`<div class="card empty"><div class="big">🧭</div>
+      Couldn't map those places. Pick a start and finish from the suggested cities.</div>`;
+    return;
+  }
+  const sel=picks[planChoice];
+  const card=(key,cap,o,why)=>{const m=modeById(o.modeId);
+    return `<div class="pick ${planChoice===key?'on':''}" data-pick="${key}">
+      <div class="cap">${cap}</div>
+      <div class="head">${m.ico} ${m.name}</div>
+      <div class="big2">${fmtDur(o.durMins)} · ${priceTxt(o.price)}</div>
+      <div class="meta2">${o.depTime} → ${o.arrTime} · ${esc(o.op)}</div>
+      <div class="why">${why}</div>
+    </div>`;};
+  const sortFn = planChoice==='cheap' ? (a,b)=>a.price-b.price
+              : planChoice==='value' ? (a,b)=>(a.price+a.durMins*0.12)-(b.price+b.durMins*0.12)
+              : (a,b)=>a.durMins-b.durMins;
+  const listed=lastPlan.options.filter(o=>o.viable).sort(sortFn);
+  const nonViable=lastPlan.options.filter(o=>!o.viable).sort((a,b)=>a.durMins-b.durMins);
+  const selMode=modeById(sel.modeId);
+
+  out.innerHTML=`
+    <div class="toolbar"><div>
+      <h2>${esc(lastPlan.from)} → ${esc(lastPlan.to)}</h2>
+      <div class="meta">about ${Math.round(lastPlan.straightKm)} km apart · choose what matters most to you</div>
+    </div></div>
+    <div class="picks">
+      ${card('fast','⚡ Fastest',picks.fast,'Least time door to door')}
+      ${card('cheap','💷 Cheapest',picks.cheap,'Lowest fare of all options')}
+      ${card('value','⭐ Best value',picks.value,'Best balance of price &amp; time')}
+    </div>
+    <div id="planmap"></div>
+    <div class="legend"><span><i style="background:${selMode.color}"></i>${selMode.ico} ${selMode.name} — selected route</span></div>
+    <div class="maptip">🟢 start · 🔴 finish · road routes follow the real roads (needs internet). Tap a card above to compare.</div>
+    <div class="toolbar"><h2 style="font-size:15px">All ways to get there (${planChoice==='cheap'?'cheapest':planChoice==='value'?'best value':'fastest'} first)</h2></div>
+    <div class="results">${listed.map(o=>planRow(o,o===sel)).join('')}${nonViable.map(o=>planRow(o,false,true)).join('')}</div>`;
+
+  out.querySelectorAll('.pick').forEach(el=>el.onclick=()=>{
+    planChoice=el.dataset.pick; renderPlan();
+    document.getElementById('planmap').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  plannerMap(sel);
+}
+function plannerMap(o){
+  const el=document.getElementById('planmap'); if(!el) return;
+  if(typeof L==='undefined'){el.innerHTML=`<div class="empty"><div class="big">🗺️</div>The map needs an internet connection to load.</div>`;return;}
+  if(planMap){planMap.remove();planMap=null;}
+  const A=getCoords(lastPlan.from), B=getCoords(lastPlan.to), m=modeById(o.modeId);
+  planMap=L.map('planmap',{scrollWheelZoom:true}).setView(A,9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(planMap);
+  L.circleMarker(A,{radius:9,color:'#fff',weight:2,fillColor:'#34d399',fillOpacity:1}).addTo(planMap).bindPopup('🟢 Start: <b>'+esc(lastPlan.from)+'</b>');
+  L.circleMarker(B,{radius:9,color:'#fff',weight:2,fillColor:'#f87171',fillOpacity:1}).addTo(planMap).bindPopup('🔴 Finish: <b>'+esc(lastPlan.to)+'</b>');
+  const line=L.polyline(curvePoints(A,B),{color:m.color,weight:4,opacity:.8}).addTo(planMap)
+    .bindPopup(m.ico+' '+m.name+' · '+fmtDur(o.durMins)+' · '+priceTxt(o.price));
+  if(ROADMODES.has(o.modeId)){
+    routeGeometry(A,B).then(g=>{ if(g&&planMap){ line.setLatLngs(g.coords);
+      line.bindPopup(m.ico+' <b>'+m.name+'</b> · '+g.distanceKm.toFixed(1)+' km along the road · '+fmtDur(o.durMins)+' · '+priceTxt(o.price)); }});
+  }
+  planMap.fitBounds([A,B],{padding:[50,50]});
+  addFullscreenControl(planMap);
+  setTimeout(()=>planMap&&planMap.invalidateSize(),60);
+}
+function doPlan(){
+  const from=document.getElementById('startPt').value.trim();
+  const to=document.getElementById('endPt').value.trim();
+  const date=document.getElementById('planDate').value;
+  const time=document.getElementById('planTime').value||'08:00';
+  if(!from||!to){alert('Please enter both a start and a finish point.');return;}
+  if(from.toLowerCase()===to.toLowerCase()){alert('Your start and finish are the same place!');return;}
+  if(!getCoords(from)||!getCoords(to)){alert('Please pick the start and finish from the suggested cities so we can map the route.');return;}
+  lastPlan=planJourneys(from,to,date,toMins(time));
+  planChoice='fast';
+  renderPlan();
+  document.getElementById('planOutput').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  document.getElementById('browseTab').style.display=name==='browse'?'':'none';
+  document.getElementById('planTab').style.display=name==='plan'?'':'none';
+}
+
 /* --------------------------------- init --------------------------------- */
 buildModes();
 buildPlaces();
 (function initDefaults(){
-  const d=new Date();
-  document.getElementById('date').value=d.toISOString().slice(0,10);
-  document.getElementById('time').value=pad(d.getHours())+':'+pad(d.getMinutes());
+  const d=new Date(), today=d.toISOString().slice(0,10), now=pad(d.getHours())+':'+pad(d.getMinutes());
+  document.getElementById('date').value=today;
+  document.getElementById('time').value=now;
+  document.getElementById('planDate').value=today;
+  document.getElementById('planTime').value=now;
 })();
 document.getElementById('searchBtn').onclick=doSearch;
 document.getElementById('place').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
+document.getElementById('planBtn').onclick=doPlan;
+document.getElementById('endPt').addEventListener('keydown',e=>{if(e.key==='Enter')doPlan()});
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
 render([]);
 </script>
 </body>
